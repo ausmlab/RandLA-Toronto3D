@@ -20,13 +20,15 @@ class ConfigToronto3D:
     num_points = 65536  # Number of input points
     num_classes = 8  # Number of valid classes
     sub_grid_size = 0.06  # preprocess_parameter
-    use_rgb = False # Use RGB
-    use_intensity = False # Use intensity
+    use_rgb = True # Use RGB
+    use_intensity = True # Use intensity
 
     batch_size = 4  # batch_size during training
     val_batch_size = 14  # batch_size during validation and test
     train_steps = 500  # Number of steps per epochs
     val_steps = 25  # Number of validation steps per epoch
+
+    eval_cycle = 0 # evaluate model every this number while training (0 means no evaluation) 
 
     sub_sampling_ratio = [4, 4, 4, 4, 2]  # sampling ratio of random sampling at each layer
     d_out = [16, 64, 128, 256, 512]  # feature dimension
@@ -40,12 +42,12 @@ class ConfigToronto3D:
     saving = True
     saving_path = None
 
-    augment_scale_anisotropic = True
-    augment_symmetries = [True, False, False]
-    augment_rotation = 'vertical'
-    augment_scale_min = 0.8
-    augment_scale_max = 1.2
-    augment_noise = 0.001
+    #augment_scale_anisotropic = True
+    #augment_symmetries = [True, False, False]
+    #augment_rotation = 'vertical'
+    #augment_scale_min = 0.8
+    #augment_scale_max = 1.2
+    #augment_noise = 0.001
 class ConfigSemanticKITTI:
     k_n = 16  # KNN
     num_layers = 4  # Number of layers

@@ -48,7 +48,8 @@ class Network:
             self.accuracy = 0
             self.mIou_list = [0]
             self.class_weights = DP.get_class_weights(dataset.name)
-            self.Log_file = open('log_train_' + dataset.name + str(dataset.val_split) + '.txt', 'a')
+            self.Log_file = open(join(self.saving_path, 'log_train_' + dataset.name + str(dataset.val_split) + '.txt'), 'a')
+
 
         with tf.variable_scope('layers'):
             self.logits = self.inference(self.inputs, self.is_training)
@@ -168,15 +169,15 @@ class Network:
                 self.training_step += 1
 
             except tf.errors.OutOfRangeError:
-
-                m_iou = self.evaluate(dataset)
-                if m_iou > np.max(self.mIou_list):
-                    # Save the best model
-                    snapshot_directory = join(self.saving_path, 'snapshots')
-                    makedirs(snapshot_directory) if not exists(snapshot_directory) else None
-                    self.saver.save(self.sess, snapshot_directory + '/snap', global_step=self.training_step)
-                self.mIou_list.append(m_iou)
-                log_out('Best m_IoU is: {:5.3f}'.format(max(self.mIou_list)), self.Log_file)
+                if self.config.eval_cycle !=0 and (self.training_step % self.config.eval_cycle) == 0 :
+                    m_iou = self.evaluate(dataset)
+                    if m_iou > np.max(self.mIou_list):
+                        # Save the best model
+                        snapshot_directory = join(self.saving_path, 'snapshots')
+                        makedirs(snapshot_directory) if not exists(snapshot_directory) else None
+                        self.saver.save(self.sess, snapshot_directory + '/snap', global_step=self.training_step)
+                    self.mIou_list.append(m_iou)
+                    log_out('Best m_IoU is: {:5.3f}'.format(max(self.mIou_list)), self.Log_file)
 
                 self.training_epoch += 1
                 self.sess.run(dataset.train_init_op)
@@ -197,6 +198,10 @@ class Network:
                 print([t.name for t in e.op.outputs])
 
                 a = 1 / 0
+        # save the last model
+        snapshot_directory = join(self.saving_path, 'snapshots')
+        makedirs(snapshot_directory) if not exists(snapshot_directory) else None
+        self.saver.save(self.sess, snapshot_directory + '/last', global_step=self.training_step)
 
         print('finished')
         self.sess.close()
