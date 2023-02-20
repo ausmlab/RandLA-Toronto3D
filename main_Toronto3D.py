@@ -206,7 +206,7 @@ class Toronto3D:
         # Collect flat inputs
         def tf_map(batch_xyz, batch_features, batch_labels, batch_pc_idx, batch_cloud_idx):
             # batch_features = tf.map_fn(self.tf_augment_input, [batch_xyz, batch_features], dtype=tf.float32)
-            batch_features = batch_xyz
+            #batch_features = batch_xyz
             if not cfg.use_rgb and not cfg.use_intensity:
                 batch_features = batch_xyz
             else :
