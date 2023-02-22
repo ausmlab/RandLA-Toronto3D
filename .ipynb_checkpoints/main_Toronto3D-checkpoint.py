@@ -205,7 +205,8 @@ class Toronto3D:
     def get_tf_mapping(self):
         # Collect flat inputs
         def tf_map(batch_xyz, batch_features, batch_labels, batch_pc_idx, batch_cloud_idx):
-            # batch_xyz = tf.map_fn(self.tf_augment_input, batch_xyz, dtype=tf.float32)
+            # batch_features = tf.map_fn(self.tf_augment_input, [batch_xyz, batch_features], dtype=tf.float32)
+            #batch_features = batch_xyz
             if not cfg.use_rgb and not cfg.use_intensity:
                 batch_features = batch_xyz
             else :
@@ -236,7 +237,8 @@ class Toronto3D:
     # data augmentation
     @staticmethod
     def tf_augment_input(inputs):
-        xyz = inputs
+        xyz = inputs[0]
+        features = inputs[1]
         theta = tf.random_uniform((1,), minval=0, maxval=2 * np.pi)
         # Rotation matrices
         c, s = tf.cos(theta), tf.sin(theta)
@@ -271,8 +273,8 @@ class Toronto3D:
 
         noise = tf.random_normal(tf.shape(transformed_xyz), stddev=cfg.augment_noise)
         transformed_xyz = transformed_xyz + noise
-
-        return transformed_xyz
+        stacked_features = tf.concat([transformed_xyz, features], axis=-1)
+        return stacked_features
 
     def init_train_pipeline(self):
         print('Initiating training pipelines')
@@ -317,7 +319,7 @@ if __name__ == '__main__':
     parser.add_argument('--gpu', type=int, default=0, help='the number of GPUs to use [default: 0]')
     parser.add_argument('--mode', type=str, default='test', help='options: train, test, vis')
     parser.add_argument('--model_path', type=str, default='None', help='pretrained model path')
-    parser.add_argument('--test_eval', type=bool, default=True, help='evaluate test result on L002')
+    parser.add_argument('--test_eval', type=bool, default=False, help='evaluate test result on L002')
     FLAGS = parser.parse_args()
 
     GPU_ID = FLAGS.gpu
@@ -326,14 +328,13 @@ if __name__ == '__main__':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
     Mode = FLAGS.mode
+    dataset = Toronto3D(mode=Mode)
 
     if Mode == 'train':
-        dataset = Toronto3D(mode=Mode)
         dataset.init_train_pipeline()
         model = Network(dataset, cfg)
         model.train(dataset)
     elif Mode == 'test':
-        dataset = Toronto3D(mode=Mode)
         cfg.saving = False
         dataset.init_test_pipeline()
         model = Network(dataset, cfg)
@@ -352,27 +353,6 @@ if __name__ == '__main__':
             tester.test(model, dataset, eval=True)
         else:
             tester.test(model, dataset)
-    elif Mode == 'both':
-        # Train Mode
-        dataset = Toronto3D(mode='train')
-        dataset.init_train_pipeline()
-        model = Network(dataset, cfg)
-        model.train(dataset)
-
-        last_chkp = join(model.saving_path, 'snapshots', 'last-{}'.format(model.training_step))
-        del (model, dataset)
-
-        # Test mode
-        tf.reset_default_graph()
-        dataset = Toronto3D(mode='test')
-        cfg.saving = False
-        dataset.init_test_pipeline()
-        model = Network(dataset, cfg)
-        tester = ModelTester(model, dataset, cfg, restore_snap=last_chkp)
-        if FLAGS.test_eval:
-            tester.test(model, dataset, num_votes=cfg.num_votes, eval=True)
-        else:
-            tester.test(model, dataset, num_votes=cfg.num_votes)
 
     else:
         ##################

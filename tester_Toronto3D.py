@@ -143,8 +143,8 @@ class ModelTester:
 
                     t2 = time.time()
                     print('Reprojection and saving done in {:.1f} s\n'.format(t2 - t1))
-                    self.sess.close()
-                    return
+                    #self.sess.close()
+                    #return
 
                 self.sess.run(dataset.test_init_op)
                 epoch_id += 1

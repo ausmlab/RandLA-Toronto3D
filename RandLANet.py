@@ -48,8 +48,8 @@ class Network:
             self.accuracy = 0
             self.mIou_list = [0]
             self.class_weights = DP.get_class_weights(dataset.name)
-            self.Log_file = open(join(self.saving_path, 'log_train_' + dataset.name + str(dataset.val_split) + '.txt'), 'a')
-
+            if self.config.saving:
+                self.Log_file = open(join(self.saving_path, 'log_train_' + dataset.name + str(dataset.val_split) + '.txt'), 'a')
 
         with tf.variable_scope('layers'):
             self.logits = self.inference(self.inputs, self.is_training)

@@ -42,8 +42,6 @@ class ConfigToronto3D:
     saving = True
     saving_path = None
 
-    num_votes = 30
-
     #augment_scale_anisotropic = True
     #augment_symmetries = [True, False, False]
     #augment_rotation = 'vertical'
